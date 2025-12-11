@@ -38,3 +38,130 @@ pip install detect-secrets
 # Safety (Python dependencies)
 pip install safety
 ```
+### Usage
+
+**Scan local repository**:
+```bash
+python main.py /path/to/your/repo
+```
+
+**Scan GitHub repository directly**:
+```bash
+python audit_github.py https://github.com/user/repo
+```
+
+**Scan specific components**:
+```bash
+# Only secrets
+python main.py /path/to/repo --mode secrets
+
+# Only dependencies
+python main.py /path/to/repo --mode deps
+
+# Only CI/CD configs
+python main.py /path/to/repo --mode cicd
+```
+## Supported Tools
+
+|Tool|Purpose|Installation|
+|---------------|------------|------------|
+|Gitleaks|Secret detection|Download|
+|TruffleHog|Deep secret verification|docker pull trufflesecurity/trufflehog|
+|detect-secrets|Entropy-based detection|pip install detect-secrets|
+|npm audit|JavaScript dependencies|Install Node.js|
+|safety|Python dependencies|pip install safety|
+|govulncheck|Go dependencies|go install|
+
+## Output Example
+```bash
+🔍 Starting ENHANCED CI/CD security audit...
+📁 Target: /path/to/repo
+
+1. 🔐 Multi-scanner secret detection...
+   gitleaks: found 2
+   trufflehog: found 1
+
+2. 📜 Git history scanning...
+   Found 3 potential secrets (after filtering)
+
+3. 📦 Dependency analysis...
+   Dependency vulnerabilities: 5
+
+📊 Statistics:
+   Total issues: 11
+   Critical: 2 🔴
+   High: 3 🟠
+   Overall risk: 65/100
+   Reports saved to: ./reports/audit_20251211_142047
+```
+## Configuration
+
+Create `config.json`:
+```bash
+{
+  "scan_depth": "deep",
+  "checks": {
+    "secrets": true,
+    "iac": true,
+    "containers": true,
+    "cicd_configs": true,
+    "dependencies": true,
+    "git_history": true
+  },
+  "risk_threshold": "medium"
+}
+```
+Use with config:
+```bash
+python main.py /path/to/repo --config config.json
+```
+## Exit Codes
+
+   - 0: Low risk (score < 50)
+   - 1: High risk (score 50-79)
+   - 2: Critical risk (score ≥ 80)
+
+## License
+
+MIT License - see LICENSE file for details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
