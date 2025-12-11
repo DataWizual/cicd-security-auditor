@@ -32,14 +32,17 @@ jobs:
       
     - name: Syntax check
       run: |
-        python -m py_compile main.py audit_github.py audit_api.py
+        # Файлы теперь в src/
+        python -m py_compile src/main.py src/audit_github.py src/audit_api.py
         echo "✅ Syntax check passed"
         
     - name: Import test
       run: |
-        python -c "import sys; sys.path.insert(0, '.'); from main import CICDSecurityAuditor; print('✅ Main imports work')"
+        # Добавляем src в путь
+        python -c "import sys; sys.path.insert(0, 'src'); from main import CICDSecurityAuditor; print('✅ Main imports work')"
         
     - name: Run audit on test directory
       run: |
-        python main.py . --mode quick --skip-tool-check
+        # Файл теперь в src/
+        python src/main.py . --mode quick --skip-tool-check
       continue-on-error: true
