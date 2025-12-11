@@ -48,10 +48,10 @@ check_requirements() {
     fi
     
     # Check main script
-    if [ -f "main.py" ]; then
+    if [ -f "src/main.py" ]; then
         echo "  ✓ main.py"
     else
-        echo "  ✗ main.py not found in current directory"
+        echo "  ✗ main.py not found in src/ directory"
         exit 1
     fi
     
@@ -74,7 +74,7 @@ run_local_audit() {
     echo "Target: $target"
     echo "Mode: $mode"
     
-    local cmd="python3 main.py \"$target\" --mode $mode"
+    local cmd="python3 src/main.py \"$target\" --mode $mode"
     
     if [ -n "$output" ]; then
         cmd="$cmd --output \"$output\""
@@ -103,13 +103,13 @@ run_github_audit() {
     echo "URL: $url"
     echo "Mode: $mode"
     
-    if [ ! -f "audit_github.py" ]; then
-        echo "✗ audit_github.py not found"
+    if [ ! -f "src/audit_github.py" ]; then
+        echo "✗ audit_github.py not found in src/"
         echo "Please run from the project directory or install the script."
         exit 1
     fi
     
-    local cmd="python3 -m src/audit_github.py \"$url\""
+    local cmd="python3 src/audit_github.py \"$url\""
     
     if [ "$mode" != "full" ]; then
         cmd="$cmd $mode"
@@ -128,7 +128,7 @@ run_api_audit() {
     echo "📡 Running API audit..."
     
     if [ ! -f "audit_api.py" ]; then
-        echo "✗ audit_api.py not found"
+        echo "✗ audit_api.py not found in project root"
         exit 1
     fi
     
@@ -147,12 +147,20 @@ run_api_audit() {
     
     response=$(curl -s -X POST http://localhost:5000/audit \
         -H "Content-Type: application/json" \
-        -d "{\"repo_url\": \"$target\", \"mode\": \"$mode\"}")
+        -d "{\"repo_url\": \"$target\", \"mode\": \"$mode\"}" 2>/dev/null || echo '{"error":"connection failed"}')
     
-    job_id=$(echo "$response" | python3 -c "import sys, json; print(json.load(sys.stdin).get('job_id', 'ERROR'))")
+    # Extract job_id safely
+    job_id=$(echo "$response" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data.get('job_id', 'ERROR'))
+except:
+    print('ERROR')
+")
     
     if [ "$job_id" = "ERROR" ]; then
-        echo "❌ Failed to create job"
+        echo "❌ Failed to create audit job"
         echo "Response: $response"
         exit 1
     fi
@@ -168,19 +176,36 @@ run_api_audit() {
     # Wait for completion
     echo "⏳ Waiting for audit to complete..."
     
-    while true; do
-        status=$(curl -s "http://localhost:5000/status/$job_id" 2>/dev/null | python3 -c "import sys, json; data=sys.stdin.read(); print(json.loads(data).get('status', 'unknown') if data else 'unknown')" 2>/dev/null || echo "unknown")
+    for i in {1..30}; do  # Max 30 attempts (150 seconds)
+        status=$(curl -s "http://localhost:5000/status/$job_id" 2>/dev/null | python3 -c "
+import sys, json
+try:
+    data = sys.stdin.read()
+    if data:
+        print(json.loads(data).get('status', 'unknown'))
+    else:
+        print('unknown')
+except:
+    print('unknown')
+" 2>/dev/null || echo "unknown")
         
-        if [ "$status" = "completed" ]; then
-            echo "✅ Audit completed!"
-            break
-        elif [ "$status" = "failed" ]; then
-            echo "❌ Audit failed"
-            break
-        elif [ "$status" = "unknown" ]; then
-            echo "❓ Cannot get status"
-            break
-        fi
+        case "$status" in
+            "completed")
+                echo "✅ Audit completed!"
+                break
+                ;;
+            "failed")
+                echo "❌ Audit failed"
+                break
+                ;;
+            "unknown")
+                if [ $i -eq 30 ]; then
+                    echo "❌ Timeout waiting for audit"
+                fi
+                ;;
+        esac
+        
+        [ "$status" = "completed" ] || [ "$status" = "failed" ] && break
         
         echo -n "."
         sleep 5
