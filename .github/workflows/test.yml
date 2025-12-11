@@ -28,7 +28,6 @@ jobs:
     - name: Run basic tests
       run: |
         python -m pytest tests/ -v
-      continue-on-error: true  # Пока тестов нет, не падать
       
     - name: Syntax check
       run: |
@@ -45,4 +44,3 @@ jobs:
       run: |
         # Файл теперь в src/
         python src/main.py . --mode quick --skip-tool-check
-      continue-on-error: true
