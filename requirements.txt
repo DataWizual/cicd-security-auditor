@@ -1,0 +1,19 @@
+# CI/CD Security Auditor Requirements
+# Core dependencies
+pyyaml>=6.0
+requests>=2.31.0
+
+# Security scanning tools
+detect-secrets>=1.4.0
+safety>=2.3.5
+
+# Development tools (optional)
+pytest>=7.4.0
+black>=23.0.0
+flake8>=6.0.0
+
+# Note: The following tools must be installed separately:
+# - gitleaks: https://github.com/gitleaks/gitleaks/releases
+# - npm audit: Install Node.js and npm
+# - govulncheck: go install golang.org/x/vuln/cmd/govulncheck@latest
+# - trufflehog: docker pull trufflesecurity/trufflehog:latest
