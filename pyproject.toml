@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "cicd-security-auditor"
 version = "1.0.0"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Eldor Zufarov", email = "eldorzufarov66@gmail.com"}
 ]
 description = "Automated security scanning for CI/CD pipelines, secrets, and dependencies"
 readme = "README.md"
@@ -35,8 +35,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/cicd-security-auditor"
-"Bug Tracker" = "https://github.com/yourusername/cicd-security-auditor/issues"
+Homepage = "https://github.com/DataWizual/cicd-security-auditor"
+"Bug Tracker" = "https://github.com/DataWizual/cicd-security-auditor/issues"
 
 [project.scripts]
 cicd-audit = "main:main"
