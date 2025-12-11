@@ -33,7 +33,7 @@ jobs:
     - name: Syntax check
       run: |
         # Файлы теперь в src/
-        python -m py_compile src/main.py src/audit_github.py src/audit_api.py
+        python -m py_compile src/main.py src/audit_github.py audit_api.py
         echo "✅ Syntax check passed"
         
     - name: Import test
